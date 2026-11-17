@@ -1,0 +1,37 @@
+name: Pipeline CI/CD - Sistema Restaurante SaborCloud
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-deploy:
+    name: Construcción, Pruebas, Docker y Despliegue
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 1. Descargar código fuente (Checkout)
+        uses: actions/checkout@v4
+
+      - name: 2. Configurar entorno Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 3. Instalar dependencias (Build)
+        run: npm ci
+
+      - name: 4. Ejecutar pruebas unitarias y cobertura (Test)
+        run: npm test
+
+      - name: 5. Construir imagen de contenedor (Docker Package)
+        run: docker build -t saborcloud-restaurante:${{ github.sha }} .
+
+      - name: 6. Despliegue simulado y Smoke Test (Deploy Staging)
+        run: |
+          docker run -d -p 3000:3000 --name saborcloud-staging saborcloud-restaurante:${{ github.sha }}
+          sleep 3
+          curl -f http://localhost:3000/api/health
