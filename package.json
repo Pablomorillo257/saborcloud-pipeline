@@ -3,9 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-"scripts": {
+    "scripts": {
     "start": "node -e \"require('./app').listen(3000)\"",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "lint": "eslint ."
+  },
+  "jest": {
+    "coverageThreshold": {
+      "global": { "statements": 80, "branches": 80, "functions": 80, "lines": 80 }
+    }
   },
   "keywords": [],
   "author": "",
@@ -15,7 +21,9 @@
     "express": "^5.3.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.15.0",
+    "globals": "^17.14.0",
     "jest": "^30.5.2",
     "supertest": "^7.3.2"
   }

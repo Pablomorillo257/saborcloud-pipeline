@@ -7,10 +7,9 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build-test-deploy:
-    name: Construcción, Pruebas, Docker y Despliegue
+  calidad:
+    name: Calidad y pruebas
     runs-on: ubuntu-latest
-
     steps:
       - name: 1. Descargar código fuente (Checkout)
         uses: actions/checkout@v4
@@ -24,13 +23,27 @@ jobs:
       - name: 3. Instalar dependencias (Build)
         run: npm ci
 
-      - name: 4. Ejecutar pruebas unitarias y cobertura (Test)
+      - name: 4. Análisis estático (ESLint)
+        run: npm run lint
+
+      - name: 5. Auditoría de seguridad (npm audit)
+        run: npm audit --audit-level=high
+
+      - name: 6. Pruebas y cobertura mínima 80 % (Test / Quality Gate)
         run: npm test
 
-      - name: 5. Construir imagen de contenedor (Docker Package)
+  empaquetado-despliegue:
+    name: Docker y despliegue en staging
+    needs: calidad
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código fuente (Checkout)
+        uses: actions/checkout@v4
+
+      - name: 7. Construir imagen de contenedor (Docker Package)
         run: docker build -t saborcloud-restaurante:${{ github.sha }} .
 
-      - name: 6. Despliegue simulado y Smoke Test (Deploy Staging)
+      - name: 8. Despliegue simulado y Smoke Test (Deploy Staging)
         run: |
           docker run -d -p 3000:3000 --name saborcloud-staging saborcloud-restaurante:${{ github.sha }}
           sleep 3
